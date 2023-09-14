@@ -89,8 +89,6 @@ def add_to_cart(melon_id):
     # - flash a success message
     # - redirect the user to the cart page
 
-   
-
 
 @app.route("/cart")
 def show_shopping_cart():
@@ -100,17 +98,43 @@ def show_shopping_cart():
 
     # The logic here will be something like:
     total_cost = 0
-    melons = []
+    melons_list = []
+
+
+    """
+    Client                                  Server
+    ------                                  ---------
+    Click "add to cart" -------------->    /add_to_cart/cong
+                                            session['cart'] = { 'cong': 1 }
+                        Redirect /cart
+                        <--------------
+                        (include session)
+
+    Receives redirect
+                        GET /cart
+                        -------------->     /cart
+                        (include session)   look up session['cart']
+                                            build melons_list
+                                            render template
+                        HTML for cart page
+                        <--------------
+                        (include session)
+    Show cart page
+    """
 
     cart = session.get("cart", {})
     
     for melon_id, number_of_melons in cart.items():
-        melon = melons.get_by_id(melon_id)
+        # pulls from import melons
+        
+        # from melons import get_by_id
+        # melon = get_by_id(melon_id)
+        melon = melons.get_by_id(melon_id) # returns a Melon object
         cost = number_of_melons * melon.price
         total_cost += cost
         melon.quantity = number_of_melons
         melon.total_cost = cost
-        melons.append(melon)
+        melons_list.append(melon) # add entire object with all attributes
     #
     # - get the cart dictionary from the session
     # - create a list to hold melon objects and a variable to hold the total
@@ -127,8 +151,8 @@ def show_shopping_cart():
     # been added to the session
 
         return render_template("cart.html",
-                               total_cost=total_cost
-                               melons=melons)
+                               total_cost=total_cost,
+                               melons_list=melons_list)
 
 
 @app.route("/login", methods=["GET"])
